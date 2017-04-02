@@ -22,7 +22,12 @@ if sys.version_info[0] < 3:
 
 class PttWebCrawler(object):
     """docstring for PttWebCrawler"""
-    def __init__(self, cmdline=None):
+    def __init__(self, cmdline=None, PartialSave):
+        self.PartialSave = True
+        self.data = ''
+        # False:全部文章存在memory再一次存
+        # True:一篇一篇文章儲存
+
         parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description='''
             A crawler for the web version of PTT, the largest online community in Taiwan.
             Input: board name and page indices (or articla ID)
@@ -68,12 +73,13 @@ class PttWebCrawler(object):
                         link = PTT_URL + href
                         article_id = re.sub('\.html', '', href.split('/')[-1])
                         if div == divs[-1] and i == end-start:  # last div of last page
-                            self.store(filename, self.parse(link, article_id, board), 'a')
+                            self.data += self.store(filename, self.parse(link, article_id, board), 'a', PartialSave=self.PartialSave)
                         else:
-                            self.store(filename, self.parse(link, article_id, board) + ',', 'a')
+                            self.data += self.store(filename, self.parse(link, article_id, board) + ',', 'a', PartialSave=self.PartialSave)
                     except:
                         pass
                 time.sleep(0.1)
+            if self.PartialSave == False: self.store(filename, self.data, 'a')
             self.store(filename, u']}', 'a')
         else:  # args.a
             article_id = args.a
@@ -181,8 +187,9 @@ class PttWebCrawler(object):
             return 1
         return int(first_page.group(1)) + 1
 
-    @staticmethod
-    def store(filename, data, mode):
+    def store(self, filename, data, mode, PartialSave=True):
+        if PartialSave == False:
+            return data
         with codecs.open(filename, mode, encoding='utf-8') as f:
             f.write(data)
 
