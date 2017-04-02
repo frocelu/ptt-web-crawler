@@ -1,18 +1,18 @@
 # vim: set ts=4 sw=4 et: -*- coding: utf-8 -*-
 import unittest
-from PttWebCrawler.crawler import PttWebCrawler as crawler
+from PttWebCrawler import PttWebCrawler as crawler
 import codecs, json, os
 
 class TestCrawler(unittest.TestCase):
     def test_parse(self):
-        self.link = 'https://www.ptt.cc/bbs/PublicServan/M.1409529482.A.9D3.html'
-        self.article_id = 'M.1409529482.A.9D3'
+        self.link = 'https://www.ptt.cc/bbs/PublicServan/M.1490923302.A.78F.html'
+        self.article_id = 'M.1490923302.A.78F'
         self.board = 'PublicServan'
 
         jsondata = json.loads(crawler.parse(self.link, self.article_id, self.board))
         self.assertEqual(jsondata['article_id'], self.article_id)
         self.assertEqual(jsondata['board'], self.board)
-        self.assertEqual(jsondata['message_conut']['count'], 55)
+        self.assertEqual(jsondata['message_conut']['count'], 3)
     
     def test_parse_with_structured_push_contents(self):
         self.link = 'https://www.ptt.cc/bbs/Gossiping/M.1119222660.A.94E.html'
