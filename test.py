@@ -48,7 +48,7 @@ class TestCrawler(unittest.TestCase):
         self.assertEqual(jsondata['board'], self.board)
 
     def test_crawler(self):
-        crawler(['-b', 'PublicServan', '-i', '1', '2'])
+        crawler(cmdline=['-b', 'PublicServan', '-i', '1', '2'])
         filename = 'PublicServan-1-2.json'
         with codecs.open(filename, 'r', encoding='utf-8') as f:
             data = json.load(f)
