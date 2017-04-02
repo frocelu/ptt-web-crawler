@@ -1,5 +1,5 @@
 import sys
-from PttWebCrawler.crawler import *
+from PttWebCrawler import *
 
 def main(args=None):
     """The main routine."""
