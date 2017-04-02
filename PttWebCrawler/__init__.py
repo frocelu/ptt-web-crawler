@@ -6,7 +6,6 @@ import re
 import sys
 import json
 import requests
-import argparse
 import time
 import codecs
 from bs4 import BeautifulSoup
@@ -22,43 +21,28 @@ if sys.version_info[0] < 3:
 
 class PttWebCrawler(object):
     """docstring for PttWebCrawler"""
-    def __init__(self, PartialSave=False, cmdline=None):
+    def __init__(self, board, iOrA, start=None, end=None, PartialSave=False, article_id=None, titleCallback=lambda x:x, contentCallback=lambda x:x):
+        self.board = board
         self.PartialSave = False
         self.data = ''
         # False:全部文章存在memory再一次存
         # True:一篇一篇文章儲存
+        self.PTT_URL = 'https://www.ptt.cc'
+        self.titleCallback = titleCallback
+        self.contentCallback = contentCallback
 
-        parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description='''
-            A crawler for the web version of PTT, the largest online community in Taiwan.
-            Input: board name and page indices (or articla ID)
-            Output: BOARD_NAME-START_INDEX-END_INDEX.json (or BOARD_NAME-ID.json)
-        ''')
-        parser.add_argument('-b', metavar='BOARD_NAME', help='Board name', required=True)
-        group = parser.add_mutually_exclusive_group(required=True)
-        group.add_argument('-i', metavar=('START_INDEX', 'END_INDEX'), type=int, nargs=2, help="Start and end index")
-        group.add_argument('-a', metavar='ARTICLE_ID', help="Article ID")
-        parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
+        # means crawl range of articles
+        if iOrA:
+            start, end = int(start), int(end)
+            if end == -1:
+                end = self.getLastPage(self.board)
 
-        if cmdline:
-            args = parser.parse_args(cmdline)
-        else:
-            args = parser.parse_args()
-        board = args.b
-        PTT_URL = 'https://www.ptt.cc'
-        if args.i:
-            start = args.i[0]
-            if args.i[1] == -1:
-                end = self.getLastPage(board)
-            else:
-                end = args.i[1]
-            index = start
-            filename = board + '-' + str(start) + '-' + str(end) + '.json'
+            filename = self.board + '-' + str(start) + '-' + str(end) + '.json'
             self.store(filename, u'{"articles": [', 'w')
-            for i in range(end-start+1):
-                index = start + i
-                print('Processing index:', str(index))
+            for index in range(0, end-start+1):
+                print('Processing index:', str(start+index))
                 resp = requests.get(
-                    url=PTT_URL + '/bbs/' + board + '/index' + str(index) + '.html',
+                    url=self.PTT_URL + '/bbs/' + self.board + '/index' + str(start+index) + '.html',
                     cookies={'over18': '1'}, verify=VERIFY
                 )
                 if resp.status_code != 200:
@@ -70,25 +54,23 @@ class PttWebCrawler(object):
                     try:
                         # ex. link would be <a href="/bbs/PublicServan/M.1127742013.A.240.html">Re: [問題] 職等</a>
                         href = div.find('a')['href']
-                        link = PTT_URL + href
+                        link = self.PTT_URL + href
                         article_id = re.sub('\.html', '', href.split('/')[-1])
-                        if div == divs[-1] and i == end-start:  # last div of last page
-                            self.data += self.store(filename, self.parse(link, article_id, board), 'a', PartialSave=self.PartialSave)
+                        if div == divs[-1] and index == end-start:  # last div of last page
+                            self.data += self.store(filename, self.parse(link, article_id), 'a', PartialSave=self.PartialSave)
                         else:
-                            self.data += self.store(filename, self.parse(link, article_id, board) + ',', 'a', PartialSave=self.PartialSave)
+                            self.data += self.store(filename, self.parse(link, article_id) + ',', 'a', PartialSave=self.PartialSave)
                     except:
                         pass
                 time.sleep(0.1)
             if self.PartialSave == False: self.store(filename, self.data, 'a')
             self.store(filename, u']}', 'a')
-        else:  # args.a
-            article_id = args.a
-            link = PTT_URL + '/bbs/' + board + '/' + article_id + '.html'
-            filename = board + '-' + article_id + '.json'
-            self.store(filename, self.parse(link, article_id, board), 'w')
+        else:  # means crawl only one article
+            link = self.PTT_URL + '/bbs/' + self.board + '/' + article_id + '.html'
+            filename = self.board + '-' + article_id + '.json'
+            self.store(filename, self.parse(link, article_id), 'w')
 
-    @staticmethod
-    def parse(link, article_id, board, titleCallback=lambda x:x, contentCallback=lambda x:x):
+    def parse(self, link, article_id):
         print('Processing article:', article_id)
         resp = requests.get(url=link, cookies={'over18': '1'}, verify=VERIFY)
         if resp.status_code != 200:
@@ -102,7 +84,7 @@ class PttWebCrawler(object):
         date = ''
         if metas:
             author = metas[0].select('span.article-meta-value')[0].string if metas[0].select('span.article-meta-value')[0] else author
-            title = titleCallback(metas[1].select('span.article-meta-value')[0].string if metas[1].select('span.article-meta-value')[0] else title)
+            title = self.titleCallback(metas[1].select('span.article-meta-value')[0].string if metas[1].select('span.article-meta-value')[0] else title)
             date = metas[2].select('span.article-meta-value')[0].string if metas[2].select('span.article-meta-value')[0] else date
 
             # remove meta nodes
@@ -133,7 +115,7 @@ class PttWebCrawler(object):
         filtered = filter(lambda x:article_id not in x, filtered) # remove last line containing the url of the article
         content = ' '.join(filtered)
         content = re.sub(r'(\s)+', ' ', content)
-        content = contentCallback(content)
+        content = self.contentCallback(content)
 
         # push messages
         p, b, n = 0, 0, 0
@@ -163,7 +145,7 @@ class PttWebCrawler(object):
 
         # json data
         data = {
-            'board': board,
+            'board': self.board,
             'article_id': article_id,
             'article_title': title,
             'author': author,
@@ -176,13 +158,12 @@ class PttWebCrawler(object):
         # print 'original:', d
         return json.dumps(data, sort_keys=True, ensure_ascii=False)
 
-    @staticmethod
-    def getLastPage(board):
+    def getLastPage(self):
         content = requests.get(
-            url= 'https://www.ptt.cc/bbs/' + board + '/index.html',
+            url= 'https://www.ptt.cc/bbs/' + self.board + '/index.html',
             cookies={'over18': '1'}
         ).content.decode('utf-8')
-        first_page = re.search(r'href="/bbs/' + board + '/index(\d+).html">&lsaquo;', content)
+        first_page = re.search(r'href="/bbs/' + self.board + '/index(\d+).html">&lsaquo;', content)
         if first_page is None:
             return 1
         return int(first_page.group(1)) + 1
@@ -192,12 +173,6 @@ class PttWebCrawler(object):
             return data
         with codecs.open(filename, mode, encoding='utf-8') as f:
             f.write(data)
-
-    @staticmethod
-    def get():
-        with codecs.open(filename, mode, encoding='utf-8') as f:
-            j = json.load(f)
-            print(f)
 
 if __name__ == '__main__':
     PttWebCrawler()

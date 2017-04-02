@@ -9,7 +9,8 @@ class TestCrawler(unittest.TestCase):
         self.article_id = 'M.1490923302.A.78F'
         self.board = 'PublicServan'
 
-        jsondata = json.loads(crawler.parse(self.link, self.article_id, self.board))
+        c = crawler(board=self.board, iOrA=False, article_id=self.article_id)
+        jsondata = json.loads(c.parse(self.link, self.article_id))
         self.assertEqual(jsondata['article_id'], self.article_id)
         self.assertEqual(jsondata['board'], self.board)
         self.assertEqual(jsondata['message_conut']['count'], 3)
@@ -19,7 +20,8 @@ class TestCrawler(unittest.TestCase):
         self.article_id = 'M.1119222660.A.94E'
         self.board = 'Gossiping'
 
-        jsondata = json.loads(crawler.parse(self.link, self.article_id, self.board))
+        c = crawler(board=self.board, iOrA=False, article_id=self.article_id)
+        jsondata = json.loads(c.parse(self.link, self.article_id))
         self.assertEqual(jsondata['article_id'], self.article_id)
         self.assertEqual(jsondata['board'], self.board)
         isCatched = False
@@ -33,7 +35,8 @@ class TestCrawler(unittest.TestCase):
         self.article_id = 'M.1433091897.A.1C5'
         self.board = 'Gossiping'
 
-        jsondata = json.loads(crawler.parse(self.link, self.article_id, self.board))
+        c = crawler(board=self.board, iOrA=False, article_id=self.article_id)
+        jsondata = json.loads(c.parse(self.link, self.article_id))
         self.assertEqual(jsondata['article_id'], self.article_id)
         self.assertEqual(jsondata['board'], self.board)
 
@@ -42,13 +45,14 @@ class TestCrawler(unittest.TestCase):
         self.article_id = 'M.1432438578.A.4B0'
         self.board = 'NBA'
 
-        jsondata = json.loads(crawler.parse(self.link, self.article_id, self.board))
+        c = crawler(board=self.board, iOrA=False, article_id=self.article_id)
+        jsondata = json.loads(c.parse(self.link, self.article_id))
         #print jsondata
         self.assertEqual(jsondata['article_id'], self.article_id)
         self.assertEqual(jsondata['board'], self.board)
 
     def test_crawler(self):
-        crawler(cmdline=['-b', 'PublicServan', '-i', '1', '2'])
+        crawler(board='PublicServan', iOrA=True, start='1', end='2')
         filename = 'PublicServan-1-2.json'
         with codecs.open(filename, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -61,7 +65,8 @@ class TestCrawler(unittest.TestCase):
 
         for board in boards:
             try:
-                _ = crawler.getLastPage(board)
+                c = crawler(board=board, iOrA=False, article_id='M.1432438578.A.4B0')
+                _ = c.getLastPage()
             except:
                 self.fail("getLastPage() raised Exception.")
 
