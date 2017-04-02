@@ -1,4 +1,4 @@
-# vim: set ts=4 sw=4 et: -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -82,7 +82,7 @@ class PttWebCrawler(object):
             self.store(filename, self.parse(link, article_id, board), 'w')
 
     @staticmethod
-    def parse(link, article_id, board):
+    def parse(link, article_id, board, titleCallback=lambda x:x, contentCallback=lambda x:x):
         print('Processing article:', article_id)
         resp = requests.get(url=link, cookies={'over18': '1'}, verify=VERIFY)
         if resp.status_code != 200:
@@ -96,7 +96,7 @@ class PttWebCrawler(object):
         date = ''
         if metas:
             author = metas[0].select('span.article-meta-value')[0].string if metas[0].select('span.article-meta-value')[0] else author
-            title = metas[1].select('span.article-meta-value')[0].string if metas[1].select('span.article-meta-value')[0] else title
+            title = titleCallback(metas[1].select('span.article-meta-value')[0].string if metas[1].select('span.article-meta-value')[0] else title)
             date = metas[2].select('span.article-meta-value')[0].string if metas[2].select('span.article-meta-value')[0] else date
 
             # remove meta nodes
@@ -114,7 +114,7 @@ class PttWebCrawler(object):
             ip = main_content.find(text=re.compile(u'※ 發信站:'))
             ip = re.search('[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*', ip).group()
         except:
-            ip = "None"
+            ip = None
 
         # 移除 '※ 發信站:' (starts with u'\u203b'), '◆ From:' (starts with u'\u25c6'), 空行及多餘空白
         # 保留英數字, 中文及中文標點, 網址, 部分特殊符號
@@ -123,11 +123,11 @@ class PttWebCrawler(object):
         for i in range(len(filtered)):
             filtered[i] = re.sub(expr, '', filtered[i])
 
-        filtered = [_f for _f in filtered if _f]  # remove empty strings
-        filtered = [x for x in filtered if article_id not in x]  # remove last line containing the url of the article
+        filtered = filter(lambda x:bool(x)==True, filtered) # remove empty strings
+        filtered = filter(lambda x:article_id not in x, filtered) # remove last line containing the url of the article
         content = ' '.join(filtered)
         content = re.sub(r'(\s)+', ' ', content)
-        # print 'content', content
+        content = contentCallback(content)
 
         # push messages
         p, b, n = 0, 0, 0
