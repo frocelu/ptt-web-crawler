@@ -21,9 +21,9 @@ if sys.version_info[0] < 3:
 
 class PttWebCrawler(object):
     """docstring for PttWebCrawler"""
-    def __init__(self, board, iOrA, start=None, end=None, PartialSave=False, article_id=None, titleCallback=lambda x:x, contentCallback=lambda x:x):
+    def __init__(self, board, iOrA, start=None, end=None, PartialSave=True, article_id=None, titleCallback=lambda x:x, contentCallback=lambda x:x):
         self.board = board
-        self.PartialSave = False
+        self.PartialSave = PartialSave
         self.data = ''
         # False:全部文章存在memory再一次存
         # True:一篇一篇文章儲存
