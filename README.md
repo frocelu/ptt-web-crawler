@@ -64,7 +64,7 @@ constructor的參數：
     * end：結束頁，自動推算該版的最後一頁請設定為-1
   * article_id：如果`iOrA`是`False`，就代表是只要爬一篇文章，那就要提供article_id給constructor
 
-政黑板1~3頁：`PttWebCrawler('HatePolitics',True , start=1, end=3)`
+政黑板1~3頁：`PttWebCrawler('HatePolitics',True , start=1, end=3)`  
 政黑板M.1491187129.A.D11這篇文章：`PttWebCrawler('HatePolitics', False, article_id='M.1491187129.A.D11')`
 
 1. 以Food版[此篇文章](https://www.ptt.cc/bbs/Food/M.1491130337.A.E8F.html)做示範：  
