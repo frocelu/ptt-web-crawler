@@ -21,12 +21,8 @@ if sys.version_info[0] < 3:
 
 class PttWebCrawler(object):
     """docstring for PttWebCrawler"""
-    def __init__(self, board, iOrA, start=None, end=None, PartialSave=True, article_id=None, titleCallback=lambda x:x, contentCallback=lambda x:x):
+    def __init__(self, board, iOrA, start=None, end=None, article_id=None, titleCallback=lambda x:x, contentCallback=lambda x:x):
         self.board = board
-        self.PartialSave = PartialSave
-        self.data = ''
-        # False:全部文章存在memory再一次存
-        # True:一篇一篇文章儲存
         self.PTT_URL = 'https://www.ptt.cc'
         self.titleCallback = titleCallback
         self.contentCallback = contentCallback
@@ -57,13 +53,14 @@ class PttWebCrawler(object):
                         link = self.PTT_URL + href
                         article_id = re.sub('\.html', '', href.split('/')[-1])
                         if div == divs[-1] and index == end-start:  # last div of last page
-                            self.data += self.store(filename, self.parse(link, article_id), 'a', PartialSave=self.PartialSave)
+                            self.store(filename, self.parse(link, article_id), 'a')
                         else:
-                            self.data += self.store(filename, self.parse(link, article_id) + ',', 'a', PartialSave=self.PartialSave)
-                    except:
+                            self.store(filename, self.parse(link, article_id) + ',', 'a')
+                    except Exception as e:
+                        print(link)
+                        print(str(e))
                         pass
                 time.sleep(0.1)
-            if self.PartialSave == False: self.store(filename, self.data, 'a')
             self.store(filename, u']}', 'a')
         else:  # means crawl only one article
             link = self.PTT_URL + '/bbs/' + self.board + '/' + article_id + '.html'
@@ -168,9 +165,7 @@ class PttWebCrawler(object):
             return 1
         return int(first_page.group(1)) + 1
 
-    def store(self, filename, data, mode, PartialSave=True):
-        if PartialSave == False:
-            return data
+    def store(self, filename, data, mode):
         with codecs.open(filename, mode, encoding='utf-8') as f:
             f.write(data)
 
