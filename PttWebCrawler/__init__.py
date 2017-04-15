@@ -31,7 +31,7 @@ class PttWebCrawler(object):
         if iOrA:
             start, end = int(start), int(end)
             if end == -1:
-                end = self.getLastPage(self.board)
+                end = self.getLastPage()
 
             filename = self.board + '-' + str(start) + '-' + str(end) + '.json'
             self.store(filename, u'{"articles": [', 'w')

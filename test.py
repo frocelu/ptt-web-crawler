@@ -5,15 +5,15 @@ import codecs, json, os
 
 class TestCrawler(unittest.TestCase):
     def test_parse(self):
-        self.link = 'https://www.ptt.cc/bbs/PublicServan/M.1490923302.A.78F.html'
-        self.article_id = 'M.1490923302.A.78F'
+        self.link = 'https://www.ptt.cc/bbs/PublicServan/M.1206459989.A.328.html'
+        self.article_id = 'M.1206459989.A.328'
         self.board = 'PublicServan'
 
         c = crawler(board=self.board, iOrA=False, article_id=self.article_id)
         jsondata = json.loads(c.parse(self.link, self.article_id))
         self.assertEqual(jsondata['article_id'], self.article_id)
         self.assertEqual(jsondata['board'], self.board)
-        self.assertEqual(jsondata['message_conut']['count'], 3)
+        self.assertEqual(jsondata['message_conut']['count'], 10)
     
     def test_parse_with_structured_push_contents(self):
         self.link = 'https://www.ptt.cc/bbs/Gossiping/M.1119222660.A.94E.html'
