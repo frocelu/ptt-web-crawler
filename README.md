@@ -1,3 +1,4 @@
+# python -m PttWebCrawler -b Gossiping -i 22590 22592 不能用
 # ptt-web-crawler (PTT 網路版爬蟲) [![Build Status](https://travis-ci.org/david30907d/ptt-web-crawler.svg?branch=master)](https://travis-ci.org/david30907d/ptt-web-crawler)
 
 特色
