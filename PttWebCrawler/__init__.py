@@ -31,7 +31,7 @@ class PttWebCrawler(object):
         if iOrA:
             start, end = int(start), int(end)
             if end == -1:
-                end = self.getLastPage()
+                end = self.getLastPage(self.board)
 
             self.filename = self.board + '-' + str(start) + '-' + str(end) + '.json'
             self.store(self.filename, u'{"articles": [', 'w')
@@ -44,7 +44,7 @@ class PttWebCrawler(object):
                 if resp.status_code != 200:
                     print('invalid url:', resp.url)
                     continue
-                soup = BeautifulSoup(resp.text)
+                soup = BeautifulSoup(resp.text, "lxml")
                 divs = soup.find_all("div", "r-ent")
                 for div in divs:
                     try:
@@ -73,7 +73,7 @@ class PttWebCrawler(object):
         if resp.status_code != 200:
             print('invalid url:', resp.url)
             return json.dumps({"error": "invalid url"}, sort_keys=True, ensure_ascii=False)
-        soup = BeautifulSoup(resp.text)
+        soup = BeautifulSoup(resp.text, "lxml")
         main_content = soup.find(id="main-content")
         metas = main_content.select('div.article-metaline')
         author = ''
@@ -155,12 +155,14 @@ class PttWebCrawler(object):
         # print 'original:', d
         return json.dumps(data, sort_keys=True, ensure_ascii=False)
 
-    def getLastPage(self):
+    @staticmethod
+    def getLastPage(board, timeout=3):
         content = requests.get(
             url= 'https://www.ptt.cc/bbs/' + self.board + '/index.html',
-            cookies={'over18': '1'}
+            cookies={'over18': '1'},
+            timeout=timeout
         ).content.decode('utf-8')
-        first_page = re.search(r'href="/bbs/' + self.board + '/index(\d+).html">&lsaquo;', content)
+        first_page = re.search(r'href="/bbs/' + board + '/index(\d+).html">&lsaquo;', content)
         if first_page is None:
             return 1
         return int(first_page.group(1)) + 1
