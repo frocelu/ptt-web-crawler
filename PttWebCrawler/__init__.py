@@ -158,7 +158,7 @@ class PttWebCrawler(object):
     @staticmethod
     def getLastPage(board, timeout=3):
         content = requests.get(
-            url= 'https://www.ptt.cc/bbs/' + self.board + '/index.html',
+            url= 'https://www.ptt.cc/bbs/' + board + '/index.html',
             cookies={'over18': '1'},
             timeout=timeout
         ).content.decode('utf-8')
