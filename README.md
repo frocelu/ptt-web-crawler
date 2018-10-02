@@ -1,3 +1,19 @@
+# 僅fork需要的部分，fork 自 david30907d / ptt-web-crawler
+主要修改：
+1.將 getLastPage 獨立出來成staticmethod。
+```
+# 抓取Food板最後4頁。
+from PttWebCrawler import *
+
+board = "Food"
+endPage = PttWebCrawler.getLastPage(board)
+
+PttWebCrawler(board, True, endPage-3, -1)
+```
+2.修正BeautifulSoup之警告。
+
+
+
 # python -m PttWebCrawler -b Gossiping -i 22590 22592 不能用
 # ptt-web-crawler (PTT 網路版爬蟲) [![Build Status](https://travis-ci.org/david30907d/ptt-web-crawler.svg?branch=master)](https://travis-ci.org/david30907d/ptt-web-crawler)
 
